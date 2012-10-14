@@ -2,13 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title></title>
-    <link href="test.css" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
     <script src="Scripts/jquery-1.8.2.js"></script>
     <script src="Scripts/tilePanel.min.js"></script>
     <script>
         $(document).ready(function () {
             var panel = new MetroPanel(400, ".tiles");
             $("#addButton").click(function () {
+                // width and margin parameter will be added in next versions
                 panel.addTile($("#content").attr("value"), 300, 10);
             });
         });
@@ -17,7 +18,7 @@
 <body>
     <div id="#info"></div>
     <input type="text" id="content" />
-    <button id="addButton">Aggiungi</button>
+    <button id="addButton">Add</button>
 
     <div class="tiles">
 

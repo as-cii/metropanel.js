@@ -71,7 +71,7 @@
     <Content Include="Scripts\tilePanel.min.js">
       <DependentUpon>tilePanel.ts</DependentUpon>
     </Content>
-    <Content Include="test.css" />
+    <Content Include="style.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

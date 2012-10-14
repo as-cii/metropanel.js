@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication18", "WebApplication18\WebApplication18.csproj", "{E52E8B9D-021D-4986-A309-A0A315795FCD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroPanel Example", "WebApplication18\MetroPanel Example.csproj", "{E52E8B9D-021D-4986-A309-A0A315795FCD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
