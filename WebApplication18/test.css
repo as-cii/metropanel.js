@@ -1,0 +1,41 @@
+﻿.tile {
+    width: 150px;
+    height: 150px;
+    border: 1px solid #62bdff;
+    cursor: pointer;
+    background-color: #0094ff;
+}
+
+.tile:nth-of-type(2n+1)
+{
+        background-color: green;
+    border: 1px solid #b6ff00;
+}
+
+.tile:nth-of-type(3n)
+{
+        background-color: yellow;
+    border: 1px solid #ffd800;
+}
+
+.double {
+    width: 320px;
+}
+
+.green {
+
+}
+
+.blue {
+        background-color: #0094ff;
+
+}
+
+.yellow {
+
+    background-color: yellow;
+}
+
+.red {
+    background-color: red;
+}

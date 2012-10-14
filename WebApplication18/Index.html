@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <link href="test.css" rel="stylesheet" />
+    <script src="Scripts/jquery-1.8.2.js"></script>
+    <script src="Scripts/tilePanel.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var panel = new MetroPanel(400, ".tiles");
+            $("#addButton").click(function () {
+                panel.addTile($("#content").attr("value"), 300, 10);
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="#info"></div>
+    <input type="text" id="content" />
+    <button id="addButton">Aggiungi</button>
+
+    <div class="tiles">
+
+    </div>
+</body>
+</html>
