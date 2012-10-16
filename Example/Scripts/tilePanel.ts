@@ -1,32 +1,5 @@
 /// <reference path="jquery.d.ts" />
 
-class Rect
-{
-    constructor (public x: number, public y: number, public width: number, public height: number)
-    {
-    }
-
-    private static min(a: number, b: number)
-    {
-        return a < b ? a : b;
-    }
-    
-    private static max(a: number, b: number)
-    {
-        return a > b ? a : b;
-    }
-
-    public static XDistance(r1 : Rect, r2 : Rect)
-    {
-        return Math.abs(r1.x - r2.x);
-    }
-
-    public static YDistance(r1: Rect, r2: Rect)
-    {
-        return Math.abs(r1.y - r2.y);
-    }
-}
-
 class Tile
 {
     public id: string;
@@ -35,24 +8,19 @@ class Tile
     public supposedX: number;
     public supposedY: number;
 
-
-    constructor (public left: number, public top: number, public content: string, public index: number)
+    constructor (public left: number, public top: number, public content: string, public index: number, public width: number)
     {
         this.id = "tile" + index;
     }
 
     public getHtml()
     {
-        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px;'>{2}</div>";
+        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px'>{2}</div>";
         return html.replace("{0}", this.left.toString())
                    .replace("{1}", this.top.toString())
                    .replace("{2}", this.content)
-                   .replace("{3}", this.id);
-    }
-
-    public getRect()
-    {
-        return new Rect(this.left, this.top, 150, 150);
+                   .replace("{3}", this.id)
+                   .replace("{4}", this.width.toString());
     }
 
     public beginDrag()
@@ -73,9 +41,6 @@ class Tile
 
             this.left += x;
             this.top += y;
-
-            $("#info").html("Left: " + this.left + "\n" +
-                           "Top : " + this.top);
         }
     }
 
@@ -103,37 +68,65 @@ class Tile
         $("#" + this.id).css("z-index", "");
         this.isBeingDragged = false;
     }
+
+    public compare(other: Tile)
+    {
+        var top = this.isBeingDragged ? this.supposedY : this.top;
+        var left = this.isBeingDragged ? this.supposedX : this.left;
+
+        if (top < other.top)
+            return -1;
+        else if (top > other.top)
+            return 1;
+        else
+        {
+            if (left < other.left)
+                return -1;
+            else if (left > other.left)
+                return 1;
+            else
+                return 0;
+        }
+    }
+
+    public isOver(other: Tile)
+    {
+        var verticalDistance = Math.abs(other.top - this.top);
+        var horizontalDistance = Math.abs(other.top - this.top);
+
+        return verticalDistance <= 10 && horizontalDistance <= 10;
+    }
 }
 
 class MetroPanel
 {
     private tiles: Tile[];
-    private lastTileLeft: number;
-    private lastTileTop: number;
+    private newTileX: number;
+    private newTileY: number;
     private count: number;
 
     private lastMouseX: number;
     private lastMouseY: number;
 
+    private timeout;
+
     constructor (public maxWidth: number, public panelId: string)
     {
         this.count = 0;
-        this.lastTileLeft = -150;
-        this.lastTileTop = 60;
+        this.newTileX = 10;
+        this.newTileY = 60;
         this.tiles = [];
     }
 
     public addTile(content: string, width:number, margin:number)
     {
-        if (this.lastTileLeft + 160 < this.maxWidth)
-            this.lastTileLeft += 160;
-        else
+        if (this.newTileX + width > this.maxWidth)
         {
-            this.lastTileLeft = 10;
-            this.lastTileTop += 160;
+            this.newTileX = 10;
+            this.newTileY += 160;
         }
 
-        var tile = new Tile(this.lastTileLeft, this.lastTileTop, content, this.count++);
+        var tile = new Tile(this.newTileX, this.newTileY, content, this.count++, width);
         var html = tile.getHtml();
         $(this.panelId).after(html);
         $("#" + tile.id).mousedown(eventObject => { this.handleTileMouseDown(tile, eventObject); });
@@ -141,12 +134,13 @@ class MetroPanel
         $("#" + tile.id).mousemove(eventObject => { this.handleTileMouseMove(tile, eventObject); });
 
         this.tiles.push(tile);
+
+        this.newTileX += width + margin;
     }
 
     private handleTileMouseDown(tile: Tile, eventObject: JQueryEventObject)
     {
         tile.beginDrag();
-        console.log(tile.getRect());
         this.lastMouseX = eventObject.pageX;
         this.lastMouseY = eventObject.pageY;
     }    
@@ -161,39 +155,56 @@ class MetroPanel
             this.lastMouseX = eventObject.pageX;
             this.lastMouseY = eventObject.pageY;
 
-            var rect = tile.getRect();
-            var xIntersections = this.tiles.filter((value, index, array) => value !== tile && 
-                                                                            Rect.XDistance(value.getRect(), tile.getRect()) <= 50 &&
-                                                                            value.top == tile.supposedY);            
-
-            var yIntersections = this.tiles.filter((value, index, array) => value !== tile && 
-                                                                            Rect.YDistance(value.getRect(), tile.getRect()) <= 50 &&
-                                                                            value.left == tile.supposedX);  
-                      
-            if (xIntersections.length == 1)
+            this.destroyTimeOut();
+            this.timeout = setTimeout(() => 
             {
-                var otherTile = xIntersections[0];
-                var tileOriginalX = tile.supposedX;
-                var tileOriginalY = tile.supposedY;
-
-                tile.supposePosition(otherTile.left, otherTile.top);
-                otherTile.moveTo(tileOriginalX, tileOriginalY);
-            }            
-            
-            if (yIntersections.length == 1)
-            {
-                var otherTile = yIntersections[0];
-                var tileOriginalX = tile.supposedX;
-                var tileOriginalY = tile.supposedY;
-
-                tile.supposePosition(otherTile.left, otherTile.top);
-                otherTile.moveTo(tileOriginalX, tileOriginalY);
-            }
+                var overs = this.tiles.filter((value, index, array) => value.isOver(tile)).sort((a, b) => Math.abs(a.left, - b.left));
+                var over = overs[0];
+                if (over)
+                {
+                    tile.supposePosition(tile.left, over.top);
+                    this.orderPanel();
+                }
+            }, 100);
         }
+    }
+
+    private orderPanel()
+    {
+        var sorted = this.tiles.sort((a, b) => a.compare(b));
+
+        var currentX = 10;
+        var currentY = 60;
+        for (var i = 0; i < this.tiles.length; i++)
+        {
+            var tile = sorted[i];
+            
+            if (currentX + tile.width > this.maxWidth)
+            {
+                currentX = 10;
+                currentY += 160;
+            }
+
+            if (tile.isBeingDragged)
+                tile.supposePosition(currentX, currentY);
+            else
+                tile.moveTo(currentX, currentY);
+
+            currentX += tile.width + 10;
+        }
+
+        this.destroyTimeOut();
+    }
+
+    private destroyTimeOut()
+    {
+        clearTimeout(this.timeout);
     }
 
     private handleTileMouseUp(tile: Tile, eventObject: JQueryEventObject)
     {
+        this.destroyTimeOut();
+
         if (tile.isBeingDragged)
         {
             tile.endDrag();

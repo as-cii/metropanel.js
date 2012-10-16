@@ -1,38 +1,15 @@
-var Rect = (function () {
-    function Rect(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-    Rect.min = function min(a, b) {
-        return a < b ? a : b;
-    }
-    Rect.max = function max(a, b) {
-        return a > b ? a : b;
-    }
-    Rect.XDistance = function XDistance(r1, r2) {
-        return Math.abs(r1.x - r2.x);
-    }
-    Rect.YDistance = function YDistance(r1, r2) {
-        return Math.abs(r1.y - r2.y);
-    }
-    return Rect;
-})();
 var Tile = (function () {
-    function Tile(left, top, content, index) {
+    function Tile(left, top, content, index, width) {
         this.left = left;
         this.top = top;
         this.content = content;
         this.index = index;
+        this.width = width;
         this.id = "tile" + index;
     }
     Tile.prototype.getHtml = function () {
-        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px;'>{2}</div>";
-        return html.replace("{0}", this.left.toString()).replace("{1}", this.top.toString()).replace("{2}", this.content).replace("{3}", this.id);
-    };
-    Tile.prototype.getRect = function () {
-        return new Rect(this.left, this.top, 150, 150);
+        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px'>{2}</div>";
+        return html.replace("{0}", this.left.toString()).replace("{1}", this.top.toString()).replace("{2}", this.content).replace("{3}", this.id).replace("{4}", this.width.toString());
     };
     Tile.prototype.beginDrag = function () {
         this.isBeingDragged = true;
@@ -49,7 +26,6 @@ var Tile = (function () {
             }, 0);
             this.left += x;
             this.top += y;
-            $("#info").html("Left: " + this.left + "\n" + "Top : " + this.top);
         }
     };
     Tile.prototype.moveTo = function (x, y) {
@@ -72,6 +48,32 @@ var Tile = (function () {
         $("#" + this.id).css("z-index", "");
         this.isBeingDragged = false;
     };
+    Tile.prototype.compare = function (other) {
+        var top = this.isBeingDragged ? this.supposedY : this.top;
+        var left = this.isBeingDragged ? this.supposedX : this.left;
+        if(top < other.top) {
+            return -1;
+        } else {
+            if(top > other.top) {
+                return 1;
+            } else {
+                if(left < other.left) {
+                    return -1;
+                } else {
+                    if(left > other.left) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+            }
+        }
+    };
+    Tile.prototype.isOver = function (other) {
+        var verticalDistance = Math.abs(other.top - this.top);
+        var horizontalDistance = Math.abs(other.top - this.top);
+        return verticalDistance <= 10 && horizontalDistance <= 10;
+    };
     return Tile;
 })();
 var MetroPanel = (function () {
@@ -79,19 +81,17 @@ var MetroPanel = (function () {
         this.maxWidth = maxWidth;
         this.panelId = panelId;
         this.count = 0;
-        this.lastTileLeft = -150;
-        this.lastTileTop = 60;
+        this.newTileX = 10;
+        this.newTileY = 60;
         this.tiles = [];
     }
     MetroPanel.prototype.addTile = function (content, width, margin) {
         var _this = this;
-        if(this.lastTileLeft + 160 < this.maxWidth) {
-            this.lastTileLeft += 160;
-        } else {
-            this.lastTileLeft = 10;
-            this.lastTileTop += 160;
+        if(this.newTileX + width > this.maxWidth) {
+            this.newTileX = 10;
+            this.newTileY += 160;
         }
-        var tile = new Tile(this.lastTileLeft, this.lastTileTop, content, this.count++);
+        var tile = new Tile(this.newTileX, this.newTileY, content, this.count++, width);
         var html = tile.getHtml();
         $(this.panelId).after(html);
         $("#" + tile.id).mousedown(function (eventObject) {
@@ -104,44 +104,62 @@ var MetroPanel = (function () {
             _this.handleTileMouseMove(tile, eventObject);
         });
         this.tiles.push(tile);
+        this.newTileX += width + margin;
     };
     MetroPanel.prototype.handleTileMouseDown = function (tile, eventObject) {
         tile.beginDrag();
-        console.log(tile.getRect());
         this.lastMouseX = eventObject.pageX;
         this.lastMouseY = eventObject.pageY;
     };
     MetroPanel.prototype.handleTileMouseMove = function (tile, eventObject) {
+        var _this = this;
         if(tile.isBeingDragged) {
             var offsetX = eventObject.pageX - this.lastMouseX;
             var offsetY = eventObject.pageY - this.lastMouseY;
             tile.moveBy(offsetX, offsetY);
             this.lastMouseX = eventObject.pageX;
             this.lastMouseY = eventObject.pageY;
-            var rect = tile.getRect();
-            var xIntersections = this.tiles.filter(function (value, index, array) {
-                return value !== tile && Rect.XDistance(value.getRect(), tile.getRect()) <= 50 && value.top == tile.supposedY;
-            });
-            var yIntersections = this.tiles.filter(function (value, index, array) {
-                return value !== tile && Rect.YDistance(value.getRect(), tile.getRect()) <= 50 && value.left == tile.supposedX;
-            });
-            if(xIntersections.length == 1) {
-                var otherTile = xIntersections[0];
-                var tileOriginalX = tile.supposedX;
-                var tileOriginalY = tile.supposedY;
-                tile.supposePosition(otherTile.left, otherTile.top);
-                otherTile.moveTo(tileOriginalX, tileOriginalY);
-            }
-            if(yIntersections.length == 1) {
-                var otherTile = yIntersections[0];
-                var tileOriginalX = tile.supposedX;
-                var tileOriginalY = tile.supposedY;
-                tile.supposePosition(otherTile.left, otherTile.top);
-                otherTile.moveTo(tileOriginalX, tileOriginalY);
-            }
+            this.destroyTimeOut();
+            this.timeout = setTimeout(function () {
+                var overs = _this.tiles.filter(function (value, index, array) {
+                    return value.isOver(tile);
+                }).sort(function (a, b) {
+                    return Math.abs(a.left, -b.left);
+                });
+                var over = overs[0];
+                if(over) {
+                    tile.supposePosition(tile.left, over.top);
+                    _this.orderPanel();
+                }
+            }, 100);
         }
     };
+    MetroPanel.prototype.orderPanel = function () {
+        var sorted = this.tiles.sort(function (a, b) {
+            return a.compare(b);
+        });
+        var currentX = 10;
+        var currentY = 60;
+        for(var i = 0; i < this.tiles.length; i++) {
+            var tile = sorted[i];
+            if(currentX + tile.width > this.maxWidth) {
+                currentX = 10;
+                currentY += 160;
+            }
+            if(tile.isBeingDragged) {
+                tile.supposePosition(currentX, currentY);
+            } else {
+                tile.moveTo(currentX, currentY);
+            }
+            currentX += tile.width + 10;
+        }
+        this.destroyTimeOut();
+    };
+    MetroPanel.prototype.destroyTimeOut = function () {
+        clearTimeout(this.timeout);
+    };
     MetroPanel.prototype.handleTileMouseUp = function (tile, eventObject) {
+        this.destroyTimeOut();
         if(tile.isBeingDragged) {
             tile.endDrag();
         }
