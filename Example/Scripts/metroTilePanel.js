@@ -46,6 +46,7 @@ var Tile = (function () {
         }
     };
     Tile.prototype.endDrag = function () {
+        $(".temp-placeholder").remove();
         this.moveTo(this.supposedX, this.supposedY);
         $("#" + this.id).css("z-index", "");
         this.isBeingDragged = false;
@@ -76,7 +77,7 @@ var Tile = (function () {
     Tile.prototype.isOver = function (other) {
         var verticalDistance = Math.abs(other.top - this.top);
         var horizontalDistance = Math.abs(other.left - this.left);
-        return verticalDistance <= 80 && horizontalDistance <= 100;
+        return verticalDistance <= 100 && horizontalDistance <= 100;
     };
     return Tile;
 })();
@@ -148,7 +149,7 @@ var MetroPanel = (function () {
 
         over = overs[0];
         if (over) {
-            var testX = tile.width == 310 ? tile.left - 20 : tile.left;
+            var testX = tile.width == 310 ? tile.left - 180 : tile.left;
             var testY = tile.width == 310 ? tile.top : over.top;
             tile.supposePosition(testX, testY);
             if (!notOrder) {
@@ -177,9 +178,7 @@ var MetroPanel = (function () {
 
             otherPanel.tiles.push(tile);
             var newX = $(otherPanel.panelId).offset()["left"] - tileAbsoluteX;
-            console.log(Math.abs(newX));
             tileElement.css("left", Math.abs(newX + 2) + "px");
-            console.log(Math.abs(newX));
             tile.left = Math.abs(newX);
             tileElement.appendTo(otherPanel.panelId);
             MetroPanel.findOversAndSuppose(tile, otherPanel, true);
@@ -197,6 +196,7 @@ var MetroPanel = (function () {
         return false;
     };
     MetroPanel.prototype.orderPanel = function () {
+        $(".temp-placeholder").remove();
         var sorted = this.tiles.sort(function (a, b) {
             return a.compare(b);
         });
@@ -209,7 +209,13 @@ var MetroPanel = (function () {
                 currentX = 10;
                 currentY += 160;
             }
-            if(tile.isBeingDragged) {
+            if (tile.isBeingDragged) {
+                var test = "<div class='temp-placeholder' style='width: {0}px; left: {1}px; top: {2}px; position: absolute;'></div>"
+                           .replace("{0}", tile.width.toString())
+                           .replace("{1}", currentX)
+                           .replace("{2}", currentY);
+
+                $(this.panelId).append(test);
                 tile.supposePosition(currentX, currentY);
                 
             } else {

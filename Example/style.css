@@ -6,6 +6,12 @@
     background-color: #0094ff;
 }
 
+.temp-placeholder {
+    border: 2px dashed gray;
+    position: absolute;
+    height: 150px;
+}
+
 
 .tile:nth-of-type(2n+1)
 {
