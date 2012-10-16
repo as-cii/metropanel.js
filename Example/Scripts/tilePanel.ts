@@ -110,7 +110,7 @@ class MetroPanel
 
     private timeout;
 
-    constructor (public maxWidth: number, public panelId: string)
+    constructor (public maxWidth: number, public panelId: string, public maxHeight: number)
     {
         this.count = 0;
         this.newTileX = 10;
@@ -193,6 +193,7 @@ class MetroPanel
             currentX += tile.width + 10;
         }
 
+        this.newTileX = currentX;
         this.destroyTimeOut();
     }
 

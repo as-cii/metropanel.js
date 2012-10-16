@@ -8,7 +8,7 @@
     <script>
         var panel;
         $(document).ready(function () {
-            panel = new MetroPanel(320, ".tiles");
+            panel = new MetroPanel(320, ".tiles", 500);
             $("#addButton").click(function () {
                 // width and margin parameter will be added in next versions
                 panel.addTile($("#content").attr("value"), parseInt($("#width").attr("value")), 10);

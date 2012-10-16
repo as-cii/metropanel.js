@@ -77,9 +77,10 @@ var Tile = (function () {
     return Tile;
 })();
 var MetroPanel = (function () {
-    function MetroPanel(maxWidth, panelId) {
+    function MetroPanel(maxWidth, panelId, maxHeight) {
         this.maxWidth = maxWidth;
         this.panelId = panelId;
+        this.maxHeight = maxHeight;
         this.count = 0;
         this.newTileX = 10;
         this.newTileY = 60;
@@ -153,6 +154,7 @@ var MetroPanel = (function () {
             }
             currentX += tile.width + 10;
         }
+        this.newTileX = currentX;
         this.destroyTimeOut();
     };
     MetroPanel.prototype.destroyTimeOut = function () {
