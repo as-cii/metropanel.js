@@ -74,16 +74,18 @@ class Tile
     {
         var top = this.isBeingDragged ? this.supposedY : this.top;
         var left = this.isBeingDragged ? this.supposedX : this.left;
+        var othertop = other.isBeingDragged ? other.supposedY : other.top;
+        var otherleft = other.isBeingDragged ? other.supposedX : other.left;
 
-        if (top < other.top)
+        if (top < othertop)
             return -1;
-        else if (top > other.top)
+        else if (top > othertop)
             return 1;
         else
         {
-            if (left < other.left)
+            if (left < otherleft)
                 return -1;
-            else if (left > other.left)
+            else if (left > otherleft)
                 return 1;
             else
                 return 0;
@@ -93,9 +95,9 @@ class Tile
     public isOver(other: Tile)
     {
         var verticalDistance = Math.abs(other.top - this.top);
-        var horizontalDistance = Math.abs(other.top - this.top);
+        var horizontalDistance = Math.abs(other.left - this.left);
 
-        return verticalDistance <= 10 && horizontalDistance <= 10;
+        return verticalDistance <= 40 && horizontalDistance <= 80;
     }
 }
 
@@ -163,14 +165,14 @@ class MetroPanel
             this.destroyTimeOut();
             this.timeout = setTimeout(() => 
             {
-                var overs = this.tiles.filter((value, index, array) => value.isOver(tile)).sort((a, b) => Math.abs(a.left, - b.left));
+                var overs = this.tiles.filter((value, index, array) => tile != value && value.isOver(tile)).sort((a, b) => Math.abs(a.left - tile.left));
                 var over = overs[0];
                 if (over)
                 {
                     tile.supposePosition(tile.left, over.top);
                     this.orderPanel();
                 }
-            }, 100);
+            }, 30);
         }
     }
 

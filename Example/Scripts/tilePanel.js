@@ -51,16 +51,18 @@ var Tile = (function () {
     Tile.prototype.compare = function (other) {
         var top = this.isBeingDragged ? this.supposedY : this.top;
         var left = this.isBeingDragged ? this.supposedX : this.left;
-        if(top < other.top) {
+        var othertop = other.isBeingDragged ? other.supposedY : other.top;
+        var otherleft = other.isBeingDragged ? other.supposedX : other.left;
+        if(top < othertop) {
             return -1;
         } else {
-            if(top > other.top) {
+            if(top > othertop) {
                 return 1;
             } else {
-                if(left < other.left) {
+                if(left < otherleft) {
                     return -1;
                 } else {
-                    if(left > other.left) {
+                    if(left > otherleft) {
                         return 1;
                     } else {
                         return 0;
@@ -71,8 +73,8 @@ var Tile = (function () {
     };
     Tile.prototype.isOver = function (other) {
         var verticalDistance = Math.abs(other.top - this.top);
-        var horizontalDistance = Math.abs(other.top - this.top);
-        return verticalDistance <= 10 && horizontalDistance <= 10;
+        var horizontalDistance = Math.abs(other.left - this.left);
+        return verticalDistance <= 40 && horizontalDistance <= 80;
     };
     return Tile;
 })();
@@ -125,16 +127,16 @@ var MetroPanel = (function () {
             this.destroyTimeOut();
             this.timeout = setTimeout(function () {
                 var overs = _this.tiles.filter(function (value, index, array) {
-                    return value.isOver(tile);
+                    return tile != value && value.isOver(tile);
                 }).sort(function (a, b) {
-                    return Math.abs(a.left, -b.left);
+                    return Math.abs(a.left - tile.left);
                 });
                 var over = overs[0];
                 if(over) {
                     tile.supposePosition(tile.left, over.top);
                     _this.orderPanel();
                 }
-            }, 100);
+            }, 30);
         }
     };
     MetroPanel.prototype.orderPanel = function () {
