@@ -1,4 +1,6 @@
 /// <reference path="jquery-1.8.2.js" />
+var lastMouseX, lastMouseY;
+
 var Tile = (function () {
     function Tile(left, top, content, index, width, panelId) {
         this.left = left;
@@ -116,18 +118,18 @@ var MetroPanel = (function () {
         console.log(this.panelId);
         eventObject.preventDefault();
         tile.beginDrag();
-        this.lastMouseX = eventObject.pageX;
-        this.lastMouseY = eventObject.pageY;
+        lastMouseX = eventObject.pageX;
+        lastMouseY = eventObject.pageY;
     };
     MetroPanel.prototype.handleTileMouseMove = function (tile, eventObject) {
         var _this = this;
         eventObject.preventDefault();
         if(tile.isBeingDragged) {
-            var offsetX = eventObject.pageX - this.lastMouseX;
-            var offsetY = eventObject.pageY - this.lastMouseY;
+            var offsetX = eventObject.pageX - lastMouseX;
+            var offsetY = eventObject.pageY - lastMouseY;
             tile.moveBy(offsetX, offsetY);
-            this.lastMouseX = eventObject.pageX;
-            this.lastMouseY = eventObject.pageY;
+            lastMouseX = eventObject.pageX;
+            lastMouseY = eventObject.pageY;
             this.destroyTimeOut();
             this.timeout = setTimeout(function () {
                 _this.destroyTimeOut();
@@ -137,7 +139,7 @@ var MetroPanel = (function () {
 
                 _this.destroyTimeOut();
 
-            }, 50);
+            }, 100);
         }
     };
     MetroPanel.findOversAndSuppose = function findOversAndSuppose(tile, panel, notOrder) {
@@ -181,9 +183,8 @@ var MetroPanel = (function () {
             tileElement.css("left", Math.abs(newX + 2) + "px");
             tile.left = Math.abs(newX);
             tileElement.appendTo(otherPanel.panelId);
-            MetroPanel.findOversAndSuppose(tile, otherPanel, true);
-            tile.endDrag();
-            otherPanel.orderPanel();
+            MetroPanel.findOversAndSuppose(tile, otherPanel);
+            //tile.endDrag();
             _this.orderPanel();
 
             tileElement.mousedown(function (eventObject) { otherPanel.handleTileMouseDown(tile, eventObject); });

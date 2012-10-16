@@ -19,7 +19,7 @@
     border: 1px solid #b6ff00;
 }
 
-.tile:nth-of-type(3n)
+.tile:nth-of-type(2n)
 {
         background-color: yellow;
     border: 1px solid #ffd800;
