@@ -4,14 +4,20 @@
     <title></title>
     <link href="style.css" rel="stylesheet" />
     <script src="Scripts/jquery-1.8.2.js"></script>
-    <script src="Scripts/tilePanel.min.js"></script>
+    <script src="Scripts/metroTilePanel.min.js"></script>
     <script>
-        var panel;
+        var panels = [];
+
         $(document).ready(function () {
-            panel = new MetroPanel(320, ".tiles", 500);
+            var panel1 = new MetroPanel(320, "#tilePanel1", 500);
+            var panel2 = new MetroPanel(320, "#tilePanel2", 500);
+
+            panels.push(panel1, panel2);
+            //var panel2 = new MetroPanel(320, "#tilePanel2");
             $("#addButton").click(function () {
                 // width and margin parameter will be added in next versions
-                panel.addTile($("#content").attr("value"), parseInt($("#width").attr("value")), 10);
+                panel1.addTile($("#content").attr("value"), parseInt($("#width").attr("value")), 10);
+                panel2.addTile($("#content").attr("value"), parseInt($("#width").attr("value")), 10);
             });
         });
     </script>
@@ -20,7 +26,11 @@
     Contenuto: <input type="text" id="content" />  Larghezza: <input type="number" id="width"/>
     <button id="addButton">Add</button>
 
-    <div class="tiles">
+    <div id="tilePanel1" style="position: relative;">
+
+    </div>
+
+    <div id="tilePanel2" style="position: relative; margin-left: 650px">
 
     </div>
 </body>

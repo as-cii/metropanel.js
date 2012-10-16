@@ -1,5 +1,7 @@
 /// <reference path="jquery.d.ts" />
 
+declare var panels: MetroPanel[];
+
 class Tile
 {
     public id: string;
@@ -8,9 +10,9 @@ class Tile
     public supposedX: number;
     public supposedY: number;
 
-    constructor (public left: number, public top: number, public content: string, public index: number, public width: number)
+    constructor (public left: number, public top: number, public content: string, public index: number, public width: number, public panelId:string)
     {
-        this.id = "tile" + index;
+        this.id = panelId.substr(1) + "_tile" + index;
     }
 
     public getHtml()
@@ -129,15 +131,14 @@ class MetroPanel
             this.newTileY += 160;
         }
 
-        var tile = new Tile(this.newTileX, this.newTileY, content, this.count++, width);
+        var tile = new Tile(this.newTileX, this.newTileY, content, this.count++, width, this.panelId);
         var html = tile.getHtml();
-        $(this.panelId).after(html);
+        $(this.panelId).append(html);
         $("#" + tile.id).mousedown(eventObject => { this.handleTileMouseDown(tile, eventObject); });
         $("#" + tile.id).mouseup(eventObject => { this.handleTileMouseUp(tile, eventObject); });
         $("#" + tile.id).mousemove(eventObject => { this.handleTileMouseMove(tile, eventObject); });
 
         this.tiles.push(tile);
-
         this.newTileX += width + margin;
     }
 
@@ -165,15 +166,58 @@ class MetroPanel
             this.destroyTimeOut();
             this.timeout = setTimeout(() => 
             {
-                var overs = this.tiles.filter((value, index, array) => tile != value && value.isOver(tile)).sort((a, b) => Math.abs(a.left - tile.left));
-                var over = overs[0];
-                if (over)
+                if (!this.otherGroupIntersection(tile))
                 {
-                    tile.supposePosition(tile.left, over.top);
-                    this.orderPanel();
+                    MetroPanel.findOversAndSuppose(tile, this);
                 }
-            }, 30);
+
+
+                this.destroyTimeOut();
+            }, 50);
         }
+    }
+
+    private static findOversAndSuppose(tile: Tile, panel: MetroPanel)
+    {
+        var overs = panel.tiles.filter((value, index, array) => tile != value && value.isOver(tile)).sort((a, b) => Math.abs(a.left - tile.left));
+        var over = overs[0];
+        if (over)
+        {
+            tile.supposePosition(tile.left, over.top);
+            panel.orderPanel();
+        }
+    }
+
+    private otherGroupIntersection(tile: Tile)
+    {
+        var tileElement = $("#" + tile.id);
+        var tileAbsoluteX = tileElement.offset()["left"];
+        var otherPanelsIntersection = panels.filter(value => value != this && Math.abs($(value.panelId).offset()["left"] - tileAbsoluteX) <= 20);
+        
+
+        var otherPanel = otherPanelsIntersection[0];
+        if (otherPanel)
+        {
+
+            var tileIndex = this.tiles.indexOf(tile);
+            if (tileIndex != -1)
+                this.tiles.splice(tileIndex, 1);
+
+            tileElement.off("mousedown");
+            tileElement.off("mouseup");
+            tileElement.off("mousemove");
+
+            otherPanel.tiles.push(tile);
+            MetroPanel.findOversAndSuppose(tile, otherPanel);
+
+            tileElement.mousedown(eventObject => { otherPanel.handleTileMouseDown(tile, eventObject); });
+            tileElement.mouseup(eventObject => { otherPanel.handleTileMouseUp(tile, eventObject); });
+            tileElement.mousemove(eventObject => { otherPanel.handleTileMouseMove(tile, eventObject); });
+            
+            return true;
+        }
+
+        return false;
     }
 
     private orderPanel()
@@ -193,15 +237,18 @@ class MetroPanel
             }
 
             if (tile.isBeingDragged)
+            {
                 tile.supposePosition(currentX, currentY);
+            }
             else
+            {                               
                 tile.moveTo(currentX, currentY);
+            }
 
             currentX += tile.width + 10;
         }
 
         this.newTileX = currentX;
-        this.destroyTimeOut();
     }
 
     private destroyTimeOut()
