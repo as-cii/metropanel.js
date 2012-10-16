@@ -15,7 +15,8 @@ class Tile
 
     public getHtml()
     {
-        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px'>{2}</div>";
+        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px; " +
+                   "-moz-user-select: none; -khtml-user-select: none;  -webkit-user-select: none; user-select: none;'>{2}</div>";
         return html.replace("{0}", this.left.toString())
                    .replace("{1}", this.top.toString())
                    .replace("{2}", this.content)
@@ -48,7 +49,7 @@ class Tile
     {
             var me = $("#" + this.id);
             me.animate({ left: x,
-                         top : y }, 'fast', 'swing');
+                         top : y }, 'fast', 'linear');
             this.left = x;
             this.top = y;
     }
@@ -140,6 +141,8 @@ class MetroPanel
 
     private handleTileMouseDown(tile: Tile, eventObject: JQueryEventObject)
     {
+        eventObject.preventDefault();
+
         tile.beginDrag();
         this.lastMouseX = eventObject.pageX;
         this.lastMouseY = eventObject.pageY;
@@ -147,6 +150,8 @@ class MetroPanel
 
     private handleTileMouseMove(tile: Tile, eventObject: JQueryEventObject)
     {
+        eventObject.preventDefault();
+
         if (tile.isBeingDragged)
         {
             var offsetX = eventObject.pageX - this.lastMouseX;
@@ -204,6 +209,7 @@ class MetroPanel
 
     private handleTileMouseUp(tile: Tile, eventObject: JQueryEventObject)
     {
+        eventObject.preventDefault();
         this.destroyTimeOut();
 
         if (tile.isBeingDragged)

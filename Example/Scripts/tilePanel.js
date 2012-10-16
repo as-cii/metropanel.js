@@ -8,7 +8,7 @@ var Tile = (function () {
         this.id = "tile" + index;
     }
     Tile.prototype.getHtml = function () {
-        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px'>{2}</div>";
+        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px; " + "-moz-user-select: none; -khtml-user-select: none;  -webkit-user-select: none; user-select: none;'>{2}</div>";
         return html.replace("{0}", this.left.toString()).replace("{1}", this.top.toString()).replace("{2}", this.content).replace("{3}", this.id).replace("{4}", this.width.toString());
     };
     Tile.prototype.beginDrag = function () {
@@ -33,7 +33,7 @@ var Tile = (function () {
         me.animate({
             left: x,
             top: y
-        }, 'fast', 'swing');
+        }, 'fast', 'linear');
         this.left = x;
         this.top = y;
     };
@@ -108,12 +108,14 @@ var MetroPanel = (function () {
         this.newTileX += width + margin;
     };
     MetroPanel.prototype.handleTileMouseDown = function (tile, eventObject) {
+        eventObject.preventDefault();
         tile.beginDrag();
         this.lastMouseX = eventObject.pageX;
         this.lastMouseY = eventObject.pageY;
     };
     MetroPanel.prototype.handleTileMouseMove = function (tile, eventObject) {
         var _this = this;
+        eventObject.preventDefault();
         if(tile.isBeingDragged) {
             var offsetX = eventObject.pageX - this.lastMouseX;
             var offsetY = eventObject.pageY - this.lastMouseY;
@@ -161,6 +163,7 @@ var MetroPanel = (function () {
         clearTimeout(this.timeout);
     };
     MetroPanel.prototype.handleTileMouseUp = function (tile, eventObject) {
+        eventObject.preventDefault();
         this.destroyTimeOut();
         if(tile.isBeingDragged) {
             tile.endDrag();
