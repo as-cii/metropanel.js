@@ -117,7 +117,6 @@ var MetroPanel = (function () {
         this.newTileX += width + margin;
     };
     MetroPanel.prototype.handleTileMouseDown = function (tile, eventObject) {
-        console.log(this.panelId);
         eventObject.preventDefault();
         tile.beginDrag();
         lastMouseX = eventObject.pageX;
@@ -204,12 +203,14 @@ var MetroPanel = (function () {
         var currentX = 10;
         var currentY = 60;
         var tile;
+        var stoppedPrematurely = false;
         for(var i = 0; i < this.tiles.length; i++) {
             tile = sorted[i];
             if (currentX + tile.width > this.maxWidth) {
                 currentX = 10;
                 currentY += 160;
             }
+
             if (tile.isBeingDragged) {
                 var test = "<div class='temp-placeholder' style='width: {0}px; left: {1}px; top: {2}px; position: absolute;'></div>"
                            .replace("{0}", tile.width.toString())
@@ -217,16 +218,21 @@ var MetroPanel = (function () {
                            .replace("{2}", currentY);
 
                 $(this.panelId).append(test);
-                tile.supposePosition(currentX, currentY);
-                
+                tile.supposePosition(currentX, currentY);     
             } else {
+                if (tile.left == currentX && tile.top == tile.currentY) {
+                    stoppedPrematurely = true;
+                    break;
+                }
                 tile.moveTo(currentX, currentY);
             }
             currentX += tile.width + 10;
         }
 
-        this.newTileX = currentX;
-        this.newTileY = currentY;
+        if (!stoppedPrematurely) {
+            this.newTileX = currentX;
+            this.newTileY = currentY;
+        }
     };
     MetroPanel.prototype.destroyTimeOut = function () {
         clearTimeout(this.timeout);
