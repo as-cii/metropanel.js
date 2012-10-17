@@ -10,6 +10,12 @@
         var panels = [];
 
         $(document).ready(function () {
+            $(document).mouseleave(function () {
+                for (var i = 0; i < panels.length; i++) {
+                    panels[i].releaseDrags();
+                }
+            });
+
             var panel1 = new MetroPanel(320, "#tilePanel1", 500);
             var panel2 = new MetroPanel(320, "#tilePanel2", 500);
 

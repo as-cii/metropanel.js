@@ -12,6 +12,7 @@ var Tile = (function () {
         this.width = width;
         this.panelId = panelId;
         this.id = panelId.substr(1) + "_tile" + index;
+        this.justChanged = false;
     }
     Tile.prototype.getHtml = function () {
         var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px; " + "-moz-user-select: none; -khtml-user-select: none;  -webkit-user-select: none; user-select: none;'>{2}</div>";
@@ -113,8 +114,26 @@ var MetroPanel = (function () {
         $("#" + tile.id).mousemove(function (eventObject) {
             _this.handleTileMouseMove(tile, eventObject);
         });
+        $("#" + tile.id).mouseleave(function (eventObject) {
+            _this.handleTileMouseLeave(tile, eventObject);
+        });
+
         this.tiles.push(tile);
         this.newTileX += width + margin;
+    };
+    MetroPanel.prototype.releaseDrags = function () {
+        for (var i = 0; i < this.tiles.length; i++) {
+            var tile = this.tiles[i];
+            if (tile.isBeingDragged) {
+                tile.endDrag();
+                break;
+            }
+        }
+    };
+    MetroPanel.prototype.handleTileMouseLeave = function (tile, eventObject) {
+        if (tile.isBeingDragged) {
+            tile.endDrag();
+        }
     };
     MetroPanel.prototype.handleTileMouseDown = function (tile, eventObject) {
         eventObject.preventDefault();
@@ -131,6 +150,13 @@ var MetroPanel = (function () {
             tile.moveBy(offsetX, offsetY);
             lastMouseX = eventObject.pageX;
             lastMouseY = eventObject.pageY;
+            var scrollOffset = document.documentElement.clientHeight - eventObject.pageY - document.body.scrollTop;
+            if (scrollOffset <= 10 && offsetY > 0)
+                document.body.scrollTop += 5;
+            else if (eventObject.pageY - document.body.scrollTop <= 10 && offsetY <= 0) {
+                document.body.scrollTop -= 5;
+            }
+
             this.destroyTimeOut();
             this.timeout = setTimeout(function () {
                 _this.destroyTimeOut();
@@ -139,8 +165,10 @@ var MetroPanel = (function () {
                 }
 
                 _this.destroyTimeOut();
-            }, 50);
+            }, 20);
         }
+
+        tile.justChanged = false;
     };
     MetroPanel.findOversAndSuppose = function findOversAndSuppose(tile, panel, notOrder) {
         var overs = panel.tiles.filter(function (value, index, array) {
@@ -155,9 +183,9 @@ var MetroPanel = (function () {
             var testY = tile.width == 310 ? tile.top : over.top;
             tile.supposePosition(testX, testY);
         }
-        if (!notOrder) {
-            panel.orderPanel();
-        }
+
+        panel.orderPanel();
+
     }
     MetroPanel.prototype.otherGroupIntersection = function (tile) {
         var _this = this;
@@ -177,6 +205,7 @@ var MetroPanel = (function () {
             tileElement.unbind("mousedown");
             tileElement.unbind("mouseup");
             tileElement.unbind("mousemove");
+            tileElement.unbind("mouseleave");
 
             otherPanel.tiles.push(tile);
             var newX = tileAbsoluteX - $(otherPanel.panelId).offset()["left"];
@@ -184,18 +213,20 @@ var MetroPanel = (function () {
             tile.left = Math.abs(newX);
             tileElement.appendTo(otherPanel.panelId);
             _this.orderPanel();
+            tile.justChanged = true;
+
+            MetroPanel.findOversAndSuppose(tile, otherPanel);
 
             tileElement.mousedown(function (eventObject) { otherPanel.handleTileMouseDown(tile, eventObject); });
             tileElement.mousemove(function (eventObject) { otherPanel.handleTileMouseMove(tile, eventObject); });
             tileElement.mouseup(function (eventObject) { otherPanel.handleTileMouseUp(tile, eventObject); });
-
-            
-            otherPanel.handleTileMouseMove(tile, { pageX: lastMouseX, pageY: lastMouseY, preventDefault: function () { } });
+            tileElement.mouseleave(function (eventObject) { otherPanel.handleTileMouseLeave(tile, eventObject); });
             return true;
         }
         return false;
     };
     MetroPanel.prototype.orderPanel = function () {
+        console.log("begin ordering on " + this.panelId);
         $(".temp-placeholder").remove();
         var sorted = this.tiles.sort(function (a, b) {
             return a.compare(b);
@@ -203,8 +234,7 @@ var MetroPanel = (function () {
         var currentX = 10;
         var currentY = 60;
         var tile;
-        var stoppedPrematurely = false;
-        for(var i = 0; i < this.tiles.length; i++) {
+        for (var i = 0; i < this.tiles.length; i++) {
             tile = sorted[i];
             if (currentX + tile.width > this.maxWidth) {
                 currentX = 10;
@@ -218,7 +248,7 @@ var MetroPanel = (function () {
                            .replace("{2}", currentY);
 
                 $(this.panelId).append(test);
-                tile.supposePosition(currentX, currentY);     
+                tile.supposePosition(currentX, currentY);
             } else {
                 if (tile.left != currentX || tile.top != currentY) {
                     tile.moveTo(currentX, currentY);
@@ -227,20 +257,24 @@ var MetroPanel = (function () {
             currentX += tile.width + 10;
         }
 
-        if (!stoppedPrematurely) {
-            this.newTileX = currentX;
-            this.newTileY = currentY;
-        }
+        this.newTileX = currentX;
+        this.newTileY = currentY;
+
+        console.log("end ordering");
     };
     MetroPanel.prototype.destroyTimeOut = function () {
         clearTimeout(this.timeout);
     };
     MetroPanel.prototype.handleTileMouseUp = function (tile, eventObject) {
+        console.log("begin mouse up on" + this.panelId);
+
         eventObject.preventDefault();
         this.destroyTimeOut();
         if(tile.isBeingDragged) {
             tile.endDrag();
         }
+
+        console.log("end mouse up");
     };
     return MetroPanel;
 })();
