@@ -79,7 +79,7 @@ var Tile = (function () {
     Tile.prototype.isOver = function (other) {
         var verticalDistance = Math.abs(other.top - this.top);
         var horizontalDistance = Math.abs(other.left - this.left);
-        return verticalDistance <= 100 && horizontalDistance <= 100;
+        return verticalDistance <= 100 && horizontalDistance <= 170;
     };
     return Tile;
 })();
@@ -139,7 +139,7 @@ var MetroPanel = (function () {
 
                 _this.destroyTimeOut();
 
-            }, 100);
+            }, 30);
         }
     };
     MetroPanel.findOversAndSuppose = function findOversAndSuppose(tile, panel, notOrder) {
