@@ -1,4 +1,6 @@
+/// <reference path="jquery-ui-1.9.0.custom.js" />
 /// <reference path="jquery-1.8.2.js" />
+
 var lastMouseX, lastMouseY;
 
 var Tile = (function () {
@@ -37,7 +39,7 @@ var Tile = (function () {
         me.animate({
             left: x,
             top: y
-        }, 'fast', 'linear');
+        }, 400, 'easeOutBounce');
         this.left = x;
         this.top = y;
     };
@@ -138,8 +140,7 @@ var MetroPanel = (function () {
                 }
 
                 _this.destroyTimeOut();
-
-            }, 30);
+            }, 50);
         }
     };
     MetroPanel.findOversAndSuppose = function findOversAndSuppose(tile, panel, notOrder) {

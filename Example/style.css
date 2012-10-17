@@ -6,10 +6,10 @@
     background-color: #0094ff;
 }
 
-.temp-placeholder {
-    border: 2px dashed gray;
+.temp-placeholder {    
     position: absolute;
     height: 150px;
+    background-color: rgba(0, 0, 0, 0.17);
 }
 
 
