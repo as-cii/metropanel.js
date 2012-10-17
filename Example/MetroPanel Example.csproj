@@ -63,6 +63,7 @@
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.2.js" />
     <Content Include="Scripts\jquery-1.8.2.min.js" />
+    <Content Include="Scripts\jquery-ui-1.9.0.custom.js" />
     <Content Include="Scripts\jquery.d.ts" />
     <TypeScriptCompile Include="Scripts\tilePanel.ts" />
     <Content Include="Scripts\metroTilePanel.js" />

@@ -220,11 +220,9 @@ var MetroPanel = (function () {
                 $(this.panelId).append(test);
                 tile.supposePosition(currentX, currentY);     
             } else {
-                if (tile.left == currentX && tile.top == tile.currentY) {
-                    stoppedPrematurely = true;
-                    break;
+                if (tile.left != currentX || tile.top != currentY) {
+                    tile.moveTo(currentX, currentY);
                 }
-                tile.moveTo(currentX, currentY);
             }
             currentX += tile.width + 10;
         }
