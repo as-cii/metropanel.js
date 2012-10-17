@@ -154,9 +154,9 @@ var MetroPanel = (function () {
             var testX = tile.width == 310 ? tile.left - 180 : tile.left;
             var testY = tile.width == 310 ? tile.top : over.top;
             tile.supposePosition(testX, testY);
-            if (!notOrder) {
-                panel.orderPanel();
-            }
+        }
+        if (!notOrder) {
+            panel.orderPanel();
         }
     }
     MetroPanel.prototype.otherGroupIntersection = function (tile) {
@@ -179,19 +179,18 @@ var MetroPanel = (function () {
             tileElement.unbind("mousemove");
 
             otherPanel.tiles.push(tile);
-            var newX = $(otherPanel.panelId).offset()["left"] - tileAbsoluteX;
-            tileElement.css("left", Math.abs(newX + 2) + "px");
+            var newX = tileAbsoluteX - $(otherPanel.panelId).offset()["left"];
+            tileElement.css("left", newX + "px");
             tile.left = Math.abs(newX);
             tileElement.appendTo(otherPanel.panelId);
-            MetroPanel.findOversAndSuppose(tile, otherPanel);
-            //tile.endDrag();
             _this.orderPanel();
 
             tileElement.mousedown(function (eventObject) { otherPanel.handleTileMouseDown(tile, eventObject); });
             tileElement.mousemove(function (eventObject) { otherPanel.handleTileMouseMove(tile, eventObject); });
             tileElement.mouseup(function (eventObject) { otherPanel.handleTileMouseUp(tile, eventObject); });
 
-
+            
+            otherPanel.handleTileMouseMove(tile, { pageX: lastMouseX, pageY: lastMouseY, preventDefault: function () { } });
             return true;
         }
         return false;
