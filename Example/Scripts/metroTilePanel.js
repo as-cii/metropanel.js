@@ -4,7 +4,7 @@
 var lastMouseX, lastMouseY;
 
 var Tile = (function () {
-    function Tile(left, top, content, index, width, panelId) {
+    function Tile(left, top, content, index, width, panelId, customClass) {
         this.left = left;
         this.top = top;
         this.content = content;
@@ -12,11 +12,11 @@ var Tile = (function () {
         this.width = width;
         this.panelId = panelId;
         this.id = panelId.substr(1) + "_tile" + index;
-        this.justChanged = false;
+        this.customClass = customClass;
     }
     Tile.prototype.getHtml = function () {
-        var html = "<div id='{3}' class='tile' style='position: absolute; left: {0}px; top: {1}px; width: {4}px; " + "-moz-user-select: none; -khtml-user-select: none;  -webkit-user-select: none; user-select: none;'>{2}</div>";
-        return html.replace("{0}", this.left.toString()).replace("{1}", this.top.toString()).replace("{2}", this.content).replace("{3}", this.id).replace("{4}", this.width.toString());
+        var html = "<div id='{3}' class='tile {5}' style='position: absolute; left: {0}px; top: {1}px; width: {4}px; " + "-moz-user-select: none; -khtml-user-select: none;  -webkit-user-select: none; user-select: none;'>{2}</div>";
+        return html.replace("{0}", this.left.toString()).replace("{1}", this.top.toString()).replace("{2}", this.content).replace("{3}", this.id).replace("{4}", this.width.toString()).replace("{5}", this.customClass);
     };
     Tile.prototype.beginDrag = function () {
         this.isBeingDragged = true;
@@ -40,7 +40,7 @@ var Tile = (function () {
         me.animate({
             left: x,
             top: y
-        }, 400, 'easeOutBounce');
+        }, 400, 'easeOutCubic');
         this.left = x;
         this.top = y;
     };
@@ -96,13 +96,15 @@ var MetroPanel = (function () {
         this.newTileY = 60;
         this.tiles = [];
     }
-    MetroPanel.prototype.addTile = function (content, width, margin) {
+    MetroPanel.prototype.addTile = function (content, width, margin, customClass) {
+        if (!customClass)
+            customClass = "";
         var _this = this;
         if(this.newTileX + width > this.maxWidth) {
             this.newTileX = 10;
             this.newTileY += 160;
         }
-        var tile = new Tile(this.newTileX, this.newTileY, content, this.count++, width, this.panelId);
+        var tile = new Tile(this.newTileX, this.newTileY, content, this.count++, width, this.panelId, customClass);
         var html = tile.getHtml();
         $(this.panelId).append(html);
         $("#" + tile.id).mousedown(function (eventObject) {
@@ -120,6 +122,8 @@ var MetroPanel = (function () {
 
         this.tiles.push(tile);
         this.newTileX += width + margin;
+
+        return "#" + tile.id;
     };
     MetroPanel.prototype.releaseDrags = function () {
         for (var i = 0; i < this.tiles.length; i++) {
@@ -151,10 +155,10 @@ var MetroPanel = (function () {
             lastMouseX = eventObject.pageX;
             lastMouseY = eventObject.pageY;
             var scrollOffset = document.documentElement.clientHeight - eventObject.pageY - document.body.scrollTop;
-            if (scrollOffset <= 10 && offsetY > 0)
-                document.body.scrollTop += 5;
-            else if (eventObject.pageY - document.body.scrollTop <= 10 && offsetY <= 0) {
-                document.body.scrollTop -= 5;
+            if (scrollOffset <= 30 && offsetY > 0)
+                document.body.scrollTop += 10;
+            else if (eventObject.pageY - document.body.scrollTop <= 30 && offsetY <= 0) {
+                document.body.scrollTop -= 10;
             }
 
             this.destroyTimeOut();
@@ -226,7 +230,6 @@ var MetroPanel = (function () {
         return false;
     };
     MetroPanel.prototype.orderPanel = function () {
-        console.log("begin ordering on " + this.panelId);
         $(".temp-placeholder").remove();
         var sorted = this.tiles.sort(function (a, b) {
             return a.compare(b);
@@ -259,22 +262,16 @@ var MetroPanel = (function () {
 
         this.newTileX = currentX;
         this.newTileY = currentY;
-
-        console.log("end ordering");
     };
     MetroPanel.prototype.destroyTimeOut = function () {
         clearTimeout(this.timeout);
     };
     MetroPanel.prototype.handleTileMouseUp = function (tile, eventObject) {
-        console.log("begin mouse up on" + this.panelId);
-
         eventObject.preventDefault();
         this.destroyTimeOut();
         if(tile.isBeingDragged) {
             tile.endDrag();
         }
-
-        console.log("end mouse up");
     };
     return MetroPanel;
 })();
