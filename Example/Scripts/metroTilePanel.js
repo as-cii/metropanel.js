@@ -1,6 +1,31 @@
 /// <reference path="jquery-ui-1.9.0.custom.js" />
 /// <reference path="jquery-1.8.2.js" />
 
+/* By: http://www.devcurry.com/2011/02/filter-array-using-javascript.html */
+
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function (fun /*, thisp */) {
+        "use strict";
+
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (typeof fun !== "function")
+            throw new TypeError();
+
+        var res = [];
+        var thisp = arguments[1];
+        for (var i = 0; i < len; i++) {
+            if (i in t) {
+                var val = t[i]; // in case fun mutates this
+                if (fun.call(thisp, val, i, t))
+                    res.push(val);
+            }
+        }
+
+        return res;
+    };
+}
+
 var lastMouseX, lastMouseY;
 
 var Tile = (function () {
